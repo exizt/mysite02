@@ -1,0 +1,43 @@
+{% extends '../base.html' %}
+{% load mathfilters %}
+{% block css_link %}
+<link href="/assets/css/guestbook.css" rel="stylesheet" type="text/css">
+{% endblock %}
+{% block content %}
+<div id="guestbook">
+	<form action="/guestbook/add" method="post">
+		{% csrf_token %}
+		<input type="hidden" name="a" value="insert">
+		<table>
+			<tr>
+				<td>이름</td><td><input type="text" name="name"></td>
+				<td>비밀번호</td><td><input type="password" name="password"></td>
+			</tr>
+			<tr>
+				<td colspan="4"><textarea name="message" id="content"></textarea></td>
+			</tr>
+			<tr>
+				<td colspan="4" align="right"><input type="submit" value=" 등록 "></td>
+			</tr>
+		</table>
+	</form>
+	<ul>
+		{% for item in list %}
+		<li>
+			<table>
+				<tr>
+					<td>{{ list | length | sub:forloop.counter | add:1 }}</td>
+					<td>{{ item.name }}</td>
+					<td>{{ item.reg_date }}</td>
+					<td><a href="/guestbook/deleteform/?no={{ item.no }}">삭제</a></td>
+				</tr>
+				<tr>
+					<td colspan="4">{{ item.message | linebreaksbr }}</td>
+				</tr>
+			</table>
+			<br>
+		</li>
+		{% endfor %}
+	</ul>
+</div>
+{% endblock %}

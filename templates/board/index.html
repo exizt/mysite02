@@ -1,0 +1,67 @@
+{% extends '../base.html' %}
+{% load mathfilters %}
+{% block css_link %}
+<link href="/assets/css/board.css" rel="stylesheet" type="text/css">
+{% endblock %}
+{% block content %}
+<div id="board">
+	<form id="search_form" action="{{ baseurl }}/" method="get">
+		<input type="text" id="kwd" name="kwd" value="{{ kwd }}">
+		<input type="submit" value="찾기">
+	</form>
+	<table class="tbl-ex">
+		<tr>
+			<th>번호</th>
+			<th>제목</th>
+			<th>글쓴이</th>
+			<th>조회수</th>
+			<th>작성일</th>
+			<th>&nbsp;</th>
+		</tr>
+		{% for board in list %}
+		<tr>
+			<td><!--{{ list | length | sub:forloop.counter | add:1 }}-->
+				{{startcount | sub:forloop.counter | add:1}}
+			</td>
+			<td style="text-align:left; padding-left: {{30|mul:board.depth }}px;">
+				{% if board.depth > 0 %}<img src="/assets/images/reply.png">{% endif %}
+				<a href="{{ baseurl }}/view/?no={{ board.no }}" >{{ board.title }}</a>
+			</td>
+			<td>{{ board.author }}</td>
+			<td>{{ board.hit }}</td>
+			<td>{{ board.reg_date | date:'Y-m-d H:i:s' }}</td>
+			<td>
+				{% if request.session.authuser is not None %}
+					{% if board.user_no == request.session.authuser.no %}
+						<a href="{{ baseurl }}/delete/?no={{ board.no }}" class="del">삭제</a>
+					{% endif %}
+				{% endif %}
+			</td>
+		</tr>
+		{% endfor %}
+	</table>
+
+	<!-- pager 추가 -->
+	<div class="pager">
+		<ul>
+			<li><a href="/board/?p={{ paginator.prevpage }}&kwd={{keyword}}">◀</a></li>
+			{% for i in paginator.paging %}
+				{% if paginator.curpage == i %}
+					<li class="selected">{{i}}</li>
+				{% elif i > paginator.pagecount %}
+					<li>{{i}}</li>
+				{% else %}
+					<li><a href="/board/?p={{i}}&kwd={{keyword}}">{{i}}</a></li>
+				{% endif %}
+			{% endfor %}
+			<li><a href="/board/?p={{ paginator.nextpage }}&kwd={{keyword}}">▶</a></li>
+		</ul>
+	</div>
+
+	<div class="bottom">
+		{% if request.session.authuser is not None %}
+		<a href="{{ baseurl }}/writeform" id="new-book">글쓰기</a>
+		{% endif %}
+	</div>
+</div>
+{% endblock %}

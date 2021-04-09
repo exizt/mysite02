@@ -6,7 +6,7 @@
 <div id="guestbook" class="delete-form">
 	<form method="post" action="/guestbook/delete">
 		{% csrf_token %}
-		<input type='hidden' name="no" value="{{ item.no }}">
+		<input type='hidden' name="id" value="{{ item.id }}">
 		<label>비밀번호</label>
 		<input type="password" name="password">
 		<input type="submit" value="확인">

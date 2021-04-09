@@ -24,12 +24,12 @@
 	<div class="bottom">
 		<a href="{{ baseurl }}/">글목록</a>
 		{% if request.session.authuser is not None %}
-			{% if post.user_no == request.session.authuser.no %}
-				<a href="{{ baseurl }}/updateform?no={{ post.no }}">글수정</a>
+			{% if post.user_id == request.session.authuser.id %}
+				<a href="{{ baseurl }}/updateform?id={{ post.id }}">글수정</a>
 			{% endif %}
 		{% endif %}
 		{% if request.session.authuser is not None %}
-			<a href="{{ baseurl }}/replyform?no={{ post.no }}">답글</a>
+			<a href="{{ baseurl }}/replyform?id={{ post.id }}">답글</a>
 		{% endif %}
 	</div>
 </div>

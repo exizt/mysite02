@@ -25,15 +25,15 @@
 			</td>
 			<td style="text-align:left; padding-left: {{30|mul:board.depth }}px;">
 				{% if board.depth > 0 %}<img src="/assets/images/reply.png">{% endif %}
-				<a href="{{ baseurl }}/view/?no={{ board.no }}" >{{ board.title }}</a>
+				<a href="{{ baseurl }}/view/?id={{ board.id }}" >{{ board.title }}</a>
 			</td>
-			<td>{{ board.author }}</td>
+			<td>{{ board.user.name }}</td>
 			<td>{{ board.hit }}</td>
 			<td>{{ board.reg_date | date:'Y-m-d H:i:s' }}</td>
 			<td>
 				{% if request.session.authuser is not None %}
-					{% if board.user_no == request.session.authuser.no %}
-						<a href="{{ baseurl }}/delete/?no={{ board.no }}" class="del">삭제</a>
+					{% if board.user_id == request.session.authuser.id %}
+						<a href="{{ baseurl }}/delete/?id={{ board.id }}" class="del">삭제</a>
 					{% endif %}
 				{% endif %}
 			</td>

@@ -1,22 +1,17 @@
+from django.db.models import Max
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 from math import ceil
 from board.models import Board
 from django.core.paginator import Paginator
 
+from user.models import User
+
 LIST_COUNT = 10
 
 
-def index(request):
-    results = Board.objects.all().order_by('-reg_date')
-    data = {
-        'list': results
-    }
-    return render(request, 'board/index.html', data)
-
-
 # 게시판 보기. (글 목록)
-def index2(request):
+def index(request):
     page = int(request.GET.get('p', '1'))
 
     if 'kwd' in request.GET:
@@ -25,17 +20,21 @@ def index2(request):
     else:
         kwd = ''
 
+    # 시작 번호
     # noinspection PyShadowingNames
     index = (page - 1) * LIST_COUNT
-    results = Board.findall(index, LIST_COUNT, kwd)
+    results = Board.objects.all().order_by('-g_no', 'o_no')[index: index+LIST_COUNT]
+    # print(results.query)
 
-    totalcount = Board.count(kwd)
+    #paginator = Paginator(results, per_page=10, orphans=5)
+    #boards = paginator.page(int(page))
+
+    totalcount = Board.objects.count()
     pagecount = ceil(totalcount/LIST_COUNT)
     curpage = page
     nextpage = curpage + 1 if curpage < pagecount else curpage
     prevpage = 1 if (curpage - 1) < 1 else curpage - 1
 
-    # totalcount : 전체 글 수, listcount : 페이지당 글 갯수, pagecount : 페이징 수
     paginator = {
         'totalcount': totalcount,
         'listcount': LIST_COUNT,
@@ -56,26 +55,31 @@ def index2(request):
         'baseurl': '/board',
         'paginator': paginator
     }
-    return render(request, "board/index.html", data)
+    return render(request, 'board/index.html', data)
 
 
 # 게시글 읽기
 def view(request):
-    postno = request.GET.get('no')
-    if postno is None:
+    postid = request.GET.get('id')
+    if postid is None:
         return HttpResponse('잘못된 접근입니다.')
 
-    result = Board.find(postno)
-    if result is None:
+    # result = Board.find(postid)
+    board = Board.objects.get(id=postid)
+
+    if board is None:
         return HttpResponse('없는 게시글입니다.')
 
     data = {
-        'post': result,
+        'post': board,
         'baseurl': '/board'
     }
 
     # 조회수 증가
-    Board.increment_hit(postno)
+    # Board.increment_hit(postid)
+    board.hit = board.hit + 1
+    board.save()
+
     return render(request, "board/view.html", data)
 
 
@@ -102,13 +106,24 @@ def write(request):
     title = request.POST.get('title', '')
     contents = request.POST.get('contents', '')
 
+    user = User.objects.get(id=authuser['id'])
+
+    max_gno = Board.objects.aggregate(g_no=Max('g_no'))['g_no']
+
     # 저장 처리
-    data = {
-        'user_no': authuser['no'], 'title': title, 'contents': contents
-    }
-    ret = Board.insert(data)
-    if ret != 1:
-        return HttpResponse('오류 발생')
+    board = Board()
+    board.title = title
+    board.contents = contents
+    board.user = user
+    board.g_no = int(max_gno) + 1
+    board.save()
+
+    # board = Board(title=title, contents=contents, user=user)
+    # board.save()
+
+    # ret = Board.insert(data)
+    # if ret != 1:
+    #     return HttpResponse('오류 발생')
 
     return HttpResponseRedirect('/board/')
     # return HttpResponseRedirect('/board/view/?no=')
@@ -121,19 +136,20 @@ def updateform(request):
         # 유저가 아닌 접근이므로. 비정상 접근이거나 세션 해제된 상태.
         return HttpResponseRedirect('/')
 
-    postno = request.GET.get('no')
-    if postno is None:
+    postid = request.GET.get('id')
+    if postid is None:
         return HttpResponse('잘못된 접근입니다.')
 
-    result = Board.find(postno)
-    if result is None:
+    # result = Board.find(postid)
+    board = Board.objects.get(id=postid)
+    if board is None:
         return HttpResponse('없는 게시글입니다.')
 
-    if result['user_no'] != authuser['no']:
+    if board.user_id != authuser['id']:
         return HttpResponse('권한이 없습니다.')
 
     data = {
-        'post': result,
+        'post': board,
         'baseurl': '/board'
     }
     return render(request, "board/updateform.html", data)
@@ -146,22 +162,24 @@ def update(request):
         # 유저가 아닌 접근이므로. 비정상 접근이거나 세션 해제된 상태.
         return HttpResponseRedirect('/')
 
-    postno = request.POST.get('no')
-    if postno is None:
+    postid = request.POST.get('id')
+    if postid is None:
         return HttpResponse('잘못된 접근입니다.')
 
-    result = Board.find(postno)
-    if result is None:
+    # result = Board.find(postid)
+    board = Board.objects.get(id=postid)
+    if board is None:
         return HttpResponse('없는 게시글입니다.')
 
-    if result['user_no'] != authuser['no']:
+    if board.user_id != authuser['id']:
         return HttpResponse('권한이 없습니다.')
 
     title = request.POST.get('title', '')
     contents = request.POST.get('contents', '')
 
-    data = {'title': title, 'contents': contents, 'no': postno}
-    Board.update(data)
+    board.title = title
+    board.contents = contents
+    board.save()
 
     return HttpResponseRedirect('/board/')
 
@@ -173,18 +191,19 @@ def delete(request):
         # 유저가 아닌 접근이므로. 비정상 접근이거나 세션 해제된 상태.
         return HttpResponseRedirect('/')
 
-    postno = request.GET.get('no')
-    if postno is None:
+    postid = request.GET.get('id')
+    if postid is None:
         return HttpResponse('잘못된 접근입니다.')
 
-    result = Board.find(postno)
-    if result is None:
+    # result = Board.find(postid)
+    board = Board.objects.get(id=postid)
+    if board is None:
         return HttpResponse('없는 게시글입니다.')
 
-    if result['user_no'] != authuser['no']:
+    if board.user_id != authuser['id']:
         return HttpResponse('권한이 없습니다.')
 
-    Board.delete(postno)
+    board.delete()
 
     return HttpResponseRedirect('/board/')
 
@@ -195,21 +214,23 @@ def replyform(request):
         # 유저가 아닌 접근이므로. 비정상 접근이거나 세션 해제된 상태.
         return HttpResponseRedirect('/')
 
-    postno = request.GET.get('no')
-    if postno is None:
+    postid = request.GET.get('id')
+    if postid is None:
         return HttpResponse('잘못된 접근입니다.')
 
-    result = Board.find(postno)
-    if result is None:
+    # result = Board.find(postid)
+    board = Board.objects.get(id=postid)
+    if board is None:
         return HttpResponse('없는 게시글입니다.')
 
     data = {
-        'origin': result,
+        'origin': board,
         'baseurl': '/board'
     }
     return render(request, 'board/replyform.html', data)
 
 
+# 답변글 처리
 def reply(request):
     authuser = request.session.get('authuser')
     if authuser is None:
@@ -223,17 +244,20 @@ def reply(request):
     o_no = request.POST.get('o_no', 0)
     depth = request.POST.get('depth', 0)
 
-    g_no = int(g_no)
-    o_no = int(o_no) + 1
-    depth = int(depth) + 1
+    user = User.objects.get(id=authuser['id'])
 
     # 저장 처리
-    data = {
-        'user_no': authuser['no'], 'title': title, 'contents': contents,
-        'g_no': g_no, 'o_no': o_no, 'depth': depth
-    }
-    ret = Board.reply(data)
-    if ret != 1:
-        return HttpResponse('오류 발생')
+    board = Board()
+    board.title = title
+    board.contents = contents
+    board.user = user
+    board.g_no = int(g_no)
+    board.o_no = int(o_no) + 1
+    board.depth = int(depth) + 1
+    board.save()
+
+    # ret = Board.reply(data)
+    # if ret != 1:
+    #    return HttpResponse('오류 발생')
 
     return HttpResponseRedirect('/board/')

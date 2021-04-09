@@ -29,7 +29,7 @@
 					<td>{{ list | length | sub:forloop.counter | add:1 }}</td>
 					<td>{{ item.name }}</td>
 					<td>{{ item.reg_date }}</td>
-					<td><a href="/guestbook/deleteform/?no={{ item.no }}">삭제</a></td>
+					<td><a href="/guestbook/deleteform/?id={{ item.id }}">삭제</a></td>
 				</tr>
 				<tr>
 					<td colspan="4">{{ item.message | linebreaksbr }}</td>

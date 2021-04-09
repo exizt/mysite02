@@ -81,9 +81,9 @@ WSGI_APPLICATION = 'mysite02.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'webdb2',
-        'USER': 'webdb2',
-        'PASSWORD': 'webdb2',
+        'NAME': 'webdb',
+        'USER': 'webdb',
+        'PASSWORD': 'webdb',
         'HOST': 'localhost',
         'PORT': 3306
     }

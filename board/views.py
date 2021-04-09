@@ -109,6 +109,8 @@ def write(request):
     user = User.objects.get(id=authuser['id'])
 
     max_gno = Board.objects.aggregate(g_no=Max('g_no'))['g_no']
+    if max_gno is None or max_gno == '':
+        max_gno = 0
 
     # 저장 처리
     board = Board()

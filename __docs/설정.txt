@@ -1,0 +1,79 @@
+[mysite02 장고 프로젝트 만들기 (ORM 사용)]
+
+
+01. django library 설치
+(env) # pip install django
+--------------------------------------------------------------------------------------------------------------------
+
+
+02. mysqlclient library 설치
+(env) # pip install mysqlclient
+--------------------------------------------------------------------------------------------------------------------
+
+
+03. 장고 프로젝트 생성
+(env) # django-admin startproject mysite02
+--------------------------------------------------------------------------------------------------------------------
+
+
+04. 디렉토리 정리(pycharm 프로젝트와 장고 프로젝트를 일치)
+--------------------------------------------------------------------------------------------------------------------
+
+
+05. 초기 설정(settings.py)
+
+1) time zone 설정
+TIME_ZONE = 'Asia/Seoul'
+
+2) database 설정
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'webdb2',
+        'USER': 'webdb2',
+        'PASSWORD': 'webdb2',
+        'HOST': 'localhost',
+        'PORT': 3306
+    }
+}
+--------------------------------------------------------------------------------------------------------------------
+
+
+06. 주요 테이블 마이그레이트하기
+(env) # python manage.py migrate
+
+
+07. 관리자 설정하기
+(env) # python manage.py createsuperuser
+
+
+--------------------------------------------------------------------------------------------------------------------
+08. Application들의 통합 template 디렉토리 templates 만들기
+
+1) 디렉토리 생성
+    mysite02
+       |--- templates
+
+
+2) template 디렉토리 설정(settings.py)
+import os
+
+'DIRS': [os.path.join(BASE_DIR, 'templates')]
+--------------------------------------------------------------------------------------------------------------------
+
+
+09. static 파일(css, js, images) 설정(settings.py)
+
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'statics'),
+)
+STATIC_URL = '/assets/'
+
+
+
+10. application 만들기
+(env) # python manage.py startapp main
+(env) # python manage.py startapp guestbook
+(env) # python manage.py startapp board
+
+

@@ -15,7 +15,28 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+import main.views as mainviews
+import guestbook.views as guestbookviews
+import board.views as boardviews
 
 urlpatterns = [
+    path('', mainviews.index),
     path('admin/', admin.site.urls),
+
+    path('guestbook/', guestbookviews.index),
+    path('guestbook/add', guestbookviews.add),
+    path('guestbook/deleteform/', guestbookviews.deleteform),
+    path('guestbook/delete', guestbookviews.delete),
+
+    path('board/', boardviews.index),
+    path('board/view/', boardviews.view),
+    path('board/writeform/', boardviews.writeform),
+    path('board/write', boardviews.write),
+    path('board/updateform/', boardviews.updateform),
+    path('board/update', boardviews.update),
+    path('board/delete/', boardviews.delete),
+    path('board/replyform/', boardviews.replyform),
+    path('board/reply', boardviews.reply),
+
+
 ]
